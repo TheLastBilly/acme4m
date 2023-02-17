@@ -690,15 +690,25 @@ texttype(Text *t, Rune r)
 		return;
 	case Kup:
 		typecommit(t);
+
 		n = textfindh(t, t->q0, 0);
 		q0 = t->q0 - n;
+		
 		if(q0 > 0)
 		{
 			i = textfindh(t, q0-1, 0);
 			q0 += -i+min(i, n) -1;
 		}
+
+		while((rr = textreadc(t, q0)) && q0 > t->file->nc)
+			if(rr == '\t' || rr == ' ')
+				q0++;
+			else
+				break;
+
 		textshow(t, q0, q0, TRUE);
 		return;
+		
 	case Kdown:
 		typecommit(t);
 		n = textfindh(t, t->q1, 1);
@@ -707,8 +717,15 @@ texttype(Text *t, Rune r)
 
 		if(q1 >= t->file->nc)
 			return;
-
+			
 		q1 += min(textfindh(t, q1, 0), i)+1;
+
+		while((rr = textreadc(t, q1)) && q1 < t->file->nc)
+			if(rr == '\t' || rr == ' ')
+				q1++;
+			else
+				break;
+
 		textshow(t, q1, q1, TRUE);
 		return;
 	case Kscrollonedown:
