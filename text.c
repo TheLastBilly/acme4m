@@ -688,9 +688,29 @@ texttype(Text *t, Rune r)
 		if(t->q1 < t->file->nc)
 			textshow(t, t->q1+1, t->q1+1, TRUE);
 		return;
+	case Kup:
+		typecommit(t);
+		n = textfindh(t, t->q0, 0);
+		q0 = t->q0 - n;
+		if(q0 > 0)
+		{
+			i = textfindh(t, q0-1, 0);
+			q0 += -i+min(i, n) -1;
+		}
+		textshow(t, q0, q0, TRUE);
+		return;
 	case Kdown:
-		n = t->maxlines/3;
-		goto case_Down;
+		typecommit(t);
+		n = textfindh(t, t->q1, 1);
+		i = textfindh(t, t->q1, 0);
+		q1 = t->q1 + n;
+
+		if(q1 >= t->file->nc)
+			return;
+
+		q1 += min(textfindh(t, q1, 0), i)+1;
+		textshow(t, q1, q1, TRUE);
+		return;
 	case Kscrollonedown:
 		n = mousescrollsize(t->maxlines);
 		if(n <= 0)
@@ -703,9 +723,6 @@ texttype(Text *t, Rune r)
 		if(t->what == Body)
 			textsetorigin(t, q0, TRUE);
 		return;
-	case Kup:
-		n = t->maxlines/3;
-		goto case_Up;
 	case Kscrolloneup:
 		n = mousescrollsize(t->maxlines);
 		goto case_Up;
@@ -718,11 +735,13 @@ texttype(Text *t, Rune r)
 		return;
 	case Khome:
 		typecommit(t);
-		textshow(t, 0, 0, FALSE);
+		q0 = t->q0 - textfindh(t, t->q0, 0);
+		textshow(t, q0, q0, TRUE);
 		return;
 	case Kend:
 		typecommit(t);
-		textshow(t, t->file->nc, t->file->nc, FALSE);
+		q1 = t->q1 + textfindh(t, t->q1, 1);
+		textshow(t, q1, q1, TRUE);
 		return;
 	case 0x01:	/* ^A: beginning of line */
 		typecommit(t);
@@ -1410,6 +1429,36 @@ textbacknl(Text *t, uint p, uint n)
 				break;
 	}
 	return p;
+}
+
+uint
+textfindh(Text *t, uint p, int e)
+{
+	int o;
+	uint d;
+
+	d = p;
+	o = e ? 1 : -1;
+	if(!e)
+		p += o;
+	
+	while(p < t->file->nc)
+	{
+		if(textreadc(t, p) == '\n')
+			break;
+		p += o;
+	}
+	
+	if(e)
+		d = p - d;
+	else
+	{
+		d -= p;
+		if(d > 0)
+			d--;
+	}
+		
+	return d;
 }
 
 void
