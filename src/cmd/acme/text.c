@@ -700,7 +700,7 @@ texttype(Text *t, Rune r)
 			q0 += -i+min(i, n) -1;
 		}
 
-		while((rr = textreadc(t, q0)) && q0 > t->file->nc)
+		while((rr = textreadc(t, q0)) && q0 < t->file->nc)
 			if(rr == '\t' || rr == ' ')
 				q0++;
 			else
